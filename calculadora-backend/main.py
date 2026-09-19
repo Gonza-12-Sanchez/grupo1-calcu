@@ -57,7 +57,7 @@ async def ciclo_de_vida(app: FastAPI):
 
 app = FastAPI(
     title="Calculadora API",
-    description="API didactica de 4 operaciones. Historial opcional en Postgres.",
+    description="API didactica de 5 operaciones. Historial opcional en Postgres.",
     version="3.0.0",
     lifespan=ciclo_de_vida,
 )
@@ -214,7 +214,7 @@ OPERACIONES: dict[str, tuple[str, Callable[[float, float], float]]] = {
     "resta": ("-", lambda a, b: a - b),
     "multiplicacion": ("*", lambda a, b: a * b),
     "division": ("/", lambda a, b: a / b),
-    "potencia": ("^",lambda a,b: a ^ b)
+    "potencia": ("^", lambda a, b: a ** b),
 }
 
 
@@ -317,7 +317,31 @@ def calcular(datos: OperacionRequest) -> OperacionResponse:
         # No es un 500: el servidor esta perfecto, el pedido es el invalido.
         raise HTTPException(status_code=400, detail="No se puede dividir por cero.")
 
-    resultado = calcular_fn(datos.a, datos.b)
+    try:
+        resultado = calcular_fn(datos.a, datos.b)
+    except ZeroDivisionError:
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede elevar cero a una potencia negativa.",
+        )
+    except OverflowError:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "El resultado quedo fuera del rango que puede representar la "
+                "computadora (mas o menos 1.8e308). Probá con numeros mas chicos."
+            ),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc) or "Operación no válida.")
+
+    # Potencia con base negativa y exponente fraccionario devuelve complex en Python
+    # (ej: (-2) ** 0.5 = 8.6e-17+1.41j). No es un número real y no se puede serializar.
+    if isinstance(resultado, complex):
+        raise HTTPException(
+            status_code=400,
+            detail="No se puede calcular potencia de base negativa con exponente no entero (resultado complejo).",
+        )
 
     # Regla de negocio 2: el resultado tiene que entrar en un float.
     # Los dos operandos pueden ser finitos y perfectamente validos, y aun asi

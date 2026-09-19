@@ -33,6 +33,7 @@ client = TestClient(app)
         ("multiplicacion", 3, 0, 0),
         ("division", 10, 4, 2.5),
         ("division", -9, 3, -3),
+        ("potencia", 2, 3, 8),
     ],
 )
 def test_calcula_correctamente(operacion, a, b, esperado):
@@ -63,7 +64,7 @@ def test_division_por_cero_devuelve_400_y_no_revienta():
 
 def test_operacion_desconocida_devuelve_422():
     # 422 lo genera Pydantic solo, porque el campo esta tipado como Literal.
-    respuesta = client.post("/api/calcular", json={"a": 1, "b": 2, "operacion": "potencia"})
+    respuesta = client.post("/api/calcular", json={"a": 1, "b": 2, "operacion": "modulo"})
 
     assert respuesta.status_code == 422
 
