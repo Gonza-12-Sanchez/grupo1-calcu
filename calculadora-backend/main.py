@@ -199,7 +199,7 @@ app.add_middleware(
 # rechaza solo todo lo que no encaje, con un 422 y un mensaje explicando que
 # campo esta mal.
 
-Operacion = Literal["suma", "resta", "multiplicacion", "division"]
+Operacion = Literal["suma", "resta", "multiplicacion", "division", "potencia"]
 
 # Tabla unica: cada operacion sabe su simbolo y como se calcula.
 # Un solo lugar para agregar una operacion nueva -> un solo lugar donde
@@ -214,6 +214,7 @@ OPERACIONES: dict[str, tuple[str, Callable[[float, float], float]]] = {
     "resta": ("-", lambda a, b: a - b),
     "multiplicacion": ("*", lambda a, b: a * b),
     "division": ("/", lambda a, b: a / b),
+    "potencia": ("^",lambda a,b: a ^ b)
 }
 
 
